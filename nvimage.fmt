@@ -1,0 +1,6 @@
+7C00-7E00		# boot loader
+7E00-10000		# 32bits stack
+10000-12000		# 32bits code
+100000-600000	# 64bits area
+600000-700000	# 64bits stack
+700000-900000	# process
