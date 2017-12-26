@@ -4,3 +4,6 @@ tags
 *.out
 *.dep
 *.elf
+*.bin
+*.img
+
