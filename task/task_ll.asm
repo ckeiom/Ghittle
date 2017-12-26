@@ -5,7 +5,6 @@ SECTION .text
 global load_gdtr, load_tss, load_idtr, read_rflags
 global read_tsc
 global context_switch
-global test_set
 
 %macro SAVE_CONTEXT 0
 push rbp
@@ -126,18 +125,5 @@ rdtsc
 shl rdx, 32
 or rax, rdx
 pop rdx
-ret
-
-test_set:
-mov rax, rsi
-lock cmpxchg byte [rdi], dl
-je LOCK_SUCCESS
-
-LOCK_FAIL:
-mov rax, 0x00
-ret
-
-LOCK_SUCCESS:
-mov rax, 0x01
 ret
 

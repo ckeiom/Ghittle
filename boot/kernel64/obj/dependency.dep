@@ -1,37 +1,38 @@
-pit.o: ../pit.c /home/merong/WORK/Ghittle_new/include/pit.h \
- /home/merong/WORK/Ghittle_new/include/types.h \
- /home/merong/WORK/Ghittle_new/include/asmutils.h
+pit.o: ../pit.c /home/merong/leader/Ghittle/include/pit.h \
+ /home/merong/leader/Ghittle/include/types.h \
+ /home/merong/leader/Ghittle/include/asmutils.h
 interrupt.o: ../interrupt.c \
- /home/merong/WORK/Ghittle_new/include/interrupt.h \
- /home/merong/WORK/Ghittle_new/include/pic.h \
- /home/merong/WORK/Ghittle_new/include/types.h \
- /home/merong/WORK/Ghittle_new/include/asmutils.h \
- /home/merong/WORK/Ghittle_new/include/keyboard.h \
- /home/merong/WORK/Ghittle_new/include/dio.h \
- /home/merong/WORK/Ghittle_new/include/console.h \
- /home/merong/WORK/Ghittle_new/include/task.h \
- /home/merong/WORK/Ghittle_new/include/list.h \
- /home/merong/WORK/Ghittle_new/include/types.h \
- /home/merong/WORK/Ghittle_new/include/desc.h \
- /home/merong/WORK/Ghittle_new/include/timer.h
-main.o: ../main.c /home/merong/WORK/Ghittle_new/include/console.h \
- /home/merong/WORK/Ghittle_new/include/desc.h \
- /home/merong/WORK/Ghittle_new/include/asmutils.h \
- /home/merong/WORK/Ghittle_new/include/pit.h \
- /home/merong/WORK/Ghittle_new/include/types.h \
- /home/merong/WORK/Ghittle_new/include/keyboard.h \
- /home/merong/WORK/Ghittle_new/include/dio.h \
- /home/merong/WORK/Ghittle_new/include/pic.h \
- /home/merong/WORK/Ghittle_new/include/asmutils.h \
- /home/merong/WORK/Ghittle_new/include/task.h \
- /home/merong/WORK/Ghittle_new/include/list.h \
- /home/merong/WORK/Ghittle_new/include/types.h \
- /home/merong/WORK/Ghittle_new/include/interrupt.h
-pic.o: ../pic.c /home/merong/WORK/Ghittle_new/include/pic.h \
- /home/merong/WORK/Ghittle_new/include/types.h \
- /home/merong/WORK/Ghittle_new/include/asmutils.h \
- /home/merong/WORK/Ghittle_new/include/asmutils.h \
- /home/merong/WORK/Ghittle_new/include/types.h
-desc.o: ../desc.c /home/merong/WORK/Ghittle_new/include/types.h \
- /home/merong/WORK/Ghittle_new/include/desc.h \
- /home/merong/WORK/Ghittle_new/include/isr.h
+ /home/merong/leader/Ghittle/include/interrupt.h \
+ /home/merong/leader/Ghittle/include/pic.h \
+ /home/merong/leader/Ghittle/include/types.h \
+ /home/merong/leader/Ghittle/include/asmutils.h \
+ /home/merong/leader/Ghittle/include/keyboard.h \
+ /home/merong/leader/Ghittle/include/dio.h \
+ /home/merong/leader/Ghittle/include/console.h \
+ /home/merong/leader/Ghittle/include/task.h \
+ /home/merong/leader/Ghittle/include/list.h \
+ /home/merong/leader/Ghittle/include/types.h \
+ /home/merong/leader/Ghittle/include/desc.h \
+ /home/merong/leader/Ghittle/include/timer.h
+main.o: ../main.c /home/merong/leader/Ghittle/include/console.h \
+ /home/merong/leader/Ghittle/include/desc.h \
+ /home/merong/leader/Ghittle/include/asmutils.h \
+ /home/merong/leader/Ghittle/include/pit.h \
+ /home/merong/leader/Ghittle/include/types.h \
+ /home/merong/leader/Ghittle/include/keyboard.h \
+ /home/merong/leader/Ghittle/include/dio.h \
+ /home/merong/leader/Ghittle/include/pic.h \
+ /home/merong/leader/Ghittle/include/asmutils.h \
+ /home/merong/leader/Ghittle/include/task.h \
+ /home/merong/leader/Ghittle/include/list.h \
+ /home/merong/leader/Ghittle/include/types.h \
+ /home/merong/leader/Ghittle/include/interrupt.h \
+ /home/merong/leader/Ghittle/include/sched.h
+pic.o: ../pic.c /home/merong/leader/Ghittle/include/pic.h \
+ /home/merong/leader/Ghittle/include/types.h \
+ /home/merong/leader/Ghittle/include/asmutils.h \
+ /home/merong/leader/Ghittle/include/asmutils.h \
+ /home/merong/leader/Ghittle/include/types.h
+desc.o: ../desc.c /home/merong/leader/Ghittle/include/types.h \
+ /home/merong/leader/Ghittle/include/desc.h \
+ /home/merong/leader/Ghittle/include/isr.h
