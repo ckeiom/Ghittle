@@ -6,6 +6,7 @@
 #include <pic.h>
 #include <task.h>
 #include <interrupt.h>
+#include <sched.h>
 
 void main(void)
 {
@@ -29,8 +30,6 @@ void main(void)
 	init_IDT();
 	load_idtr(IDTR_START_ADDR);
 	
-
-
 	printk("Initializing taskpool & scheduler\n");
 
 	init_scheduler();
@@ -47,13 +46,12 @@ void main(void)
 
 	PBOOT_FLAG = 1;
 
-	create_task( TASK_PRIO_LOWEST | TASK_FLAGS_IDLE, (unsigned long)idle_task);
+	create_task( SCHED_PRIO_LOWEST | TASK_FLAGS_IDLE, (unsigned long)idle_task);
 
 	/* Include testing headers here */
 
 	/* TEST BOARD */
 	printk("TEST\n");
-
 
 
 ERR_OUT:
