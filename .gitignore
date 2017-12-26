@@ -6,4 +6,4 @@ tags
 *.elf
 *.bin
 *.img
-
+*.mak
