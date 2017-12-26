@@ -1,9 +1,9 @@
-sched.o: ../sched.c /home/merong/leader/Ghittle/include/task.h \
- /home/merong/leader/Ghittle/include/list.h \
- /home/merong/leader/Ghittle/include/types.h \
- /home/merong/leader/Ghittle/include/sched.h \
- /home/merong/leader/Ghittle/include/desc.h \
- /home/merong/leader/Ghittle/include/memutils.h \
- /home/merong/leader/Ghittle/include/sync.h \
- /home/merong/leader/Ghittle/include/interrupt.h \
- /home/merong/leader/Ghittle/include/timer.h
+sched.o: ../sched.c /home/merong/team2/tmp/Ghittle/include/task.h \
+ /home/merong/team2/tmp/Ghittle/include/list.h \
+ /home/merong/team2/tmp/Ghittle/include/types.h \
+ /home/merong/team2/tmp/Ghittle/include/sched.h \
+ /home/merong/team2/tmp/Ghittle/include/desc.h \
+ /home/merong/team2/tmp/Ghittle/include/memutils.h \
+ /home/merong/team2/tmp/Ghittle/include/sync.h \
+ /home/merong/team2/tmp/Ghittle/include/interrupt.h \
+ /home/merong/team2/tmp/Ghittle/include/timer.h

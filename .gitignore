@@ -2,3 +2,5 @@
 *.o
 tags
 *.out
+*.dep
+*.elf
