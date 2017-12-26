@@ -1,0 +1,9 @@
+*.files
+*.o
+tags
+*.out
+*.dep
+*.elf
+*.bin
+*.img
+*.mak

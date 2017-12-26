@@ -49,7 +49,7 @@ ERR_OUT:
 
 void print_string( int x, int y, const char* str )
 {
-	struct console_buffer *scr = (struct console_buffer *) VEDIO_MEM_START;
+	struct console_buffer *scr = (struct console_buffer *) VIDEO_MEM_START;
 	int i;
 
 	scr += ( y*80) + x;
