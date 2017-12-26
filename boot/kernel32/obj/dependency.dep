@@ -1,3 +1,3 @@
-main.o: ../src/main.c /home/merong/team2/tmp/Ghittle/include/kern32.h \
- /home/merong/team2/tmp/Ghittle/include/page.h \
- /home/merong/team2/tmp/Ghittle/include/console.h
+main.o: ../src/main.c /home/merong/WORK/Ghittle/include/kern32.h \
+ /home/merong/WORK/Ghittle/include/page.h \
+ /home/merong/WORK/Ghittle/include/console.h
