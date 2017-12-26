@@ -1,0 +1,19 @@
+console.o: ../console.c /home/merong/team2/tmp/Ghittle/include/console.h \
+ /home/merong/team2/tmp/Ghittle/include/memutils.h \
+ /home/merong/team2/tmp/Ghittle/include/string.h \
+ /home/merong/team2/tmp/Ghittle/include/dio.h \
+ /home/merong/team2/tmp/Ghittle/include/keyboard.h \
+ /home/merong/team2/tmp/Ghittle/include/sched.h \
+ /home/merong/team2/tmp/Ghittle/include/list.h \
+ /home/merong/team2/tmp/Ghittle/include/types.h \
+ /home/merong/team2/tmp/Ghittle/include/task.h
+keyboard.o: ../keyboard.c /home/merong/team2/tmp/Ghittle/include/types.h \
+ /home/merong/team2/tmp/Ghittle/include/asmutils.h \
+ /home/merong/team2/tmp/Ghittle/include/keyboard.h \
+ /home/merong/team2/tmp/Ghittle/include/dio.h \
+ /home/merong/team2/tmp/Ghittle/include/queue.h \
+ /home/merong/team2/tmp/Ghittle/include/types.h \
+ /home/merong/team2/tmp/Ghittle/include/sync.h \
+ /home/merong/team2/tmp/Ghittle/include/interrupt.h
+hdd.o: ../hdd.c /home/merong/team2/tmp/Ghittle/include/hdd.h
+timer.o: ../timer.c /home/merong/team2/tmp/Ghittle/include/timer.h

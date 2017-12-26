@@ -1,0 +1,14 @@
+queue.o: ../queue.c /home/merong/team2/tmp/Ghittle/include/queue.h \
+ /home/merong/team2/tmp/Ghittle/include/types.h \
+ /home/merong/team2/tmp/Ghittle/include/memutils.h
+sync.o: ../sync.c /home/merong/team2/tmp/Ghittle/include/sync.h \
+ /home/merong/team2/tmp/Ghittle/include/interrupt.h \
+ /home/merong/team2/tmp/Ghittle/include/asmutils.h \
+ /home/merong/team2/tmp/Ghittle/include/sched.h \
+ /home/merong/team2/tmp/Ghittle/include/list.h \
+ /home/merong/team2/tmp/Ghittle/include/types.h \
+ /home/merong/team2/tmp/Ghittle/include/task.h
+string.o: ../string.c /home/merong/team2/tmp/Ghittle/include/string.h \
+ /home/merong/team2/tmp/Ghittle/include/memutils.h
+mem_utils.o: ../mem_utils.c \
+ /home/merong/team2/tmp/Ghittle/include/memutils.h

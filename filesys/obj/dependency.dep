@@ -1,0 +1,4 @@
+dir.o: ../dir.c /home/merong/team2/tmp/Ghittle/include/dir.h
+inode.o: ../inode.c /home/merong/team2/tmp/Ghittle/include/inode.h \
+ /home/merong/team2/tmp/Ghittle/include/types.h
+filesys.o: ../filesys.c /home/merong/team2/tmp/Ghittle/include/filesys.h
