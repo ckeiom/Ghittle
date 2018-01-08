@@ -3,10 +3,12 @@
 
 #include <list.h>
 #include <task.h>
+#include <sync.h>
 
 #define SCHED_CPUTIME	5 /* ms */
-#define SCHED_MAX_READYLIST	5
 
+/*
+#define SCHED_MAX_READYLIST	5
 #define SCHED_PRIO_HIGHEST 	0
 #define SCHED_PRIO_HIGH		1
 #define SCHED_PRIO_MEDIUM	2
@@ -16,21 +18,25 @@
 
 #define SCHED_GET_PRIORITY(x)		( (x)&0xFF)
 #define SCHED_SET_PRIORITY(x, prio) 	( (x) = ( (x)&0xFFFFFFFFFFFFFF00 ) | (prio) )
-
+*/
 #pragma pack(push,1)
 
 struct scheduler
 {
 	struct task* running;
 	int cputime;
-	struct list_header readylist[SCHED_MAX_READYLIST];
+	struct list_header readylist;
 	struct list_header waitlist;
-	int exe_count[SCHED_MAX_READYLIST];
+	int num_running;
 	unsigned long cpu_load;
 	unsigned long idle_time;
+
+	struct mutex lock;
 };
 
 #pragma pack(pop)
+
+extern struct scheduler scheduler;
 
 void init_scheduler(void);
 
@@ -54,5 +60,7 @@ int get_readytask_count( void );
 unsigned long get_cpu_load( void );
 
 void context_switch(struct task_context *prev, struct task_context *next);
+void halt(void);
 
+void idle_task(void);
 #endif

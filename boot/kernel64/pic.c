@@ -1,6 +1,7 @@
 #include <pic.h>
 #include <asmutils.h>
 #include <types.h>
+#include <dio.h>
 
 void init_PIC(void)
 {

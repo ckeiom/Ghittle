@@ -7,4 +7,6 @@ tags
 *.bin
 *.img
 *.mak
+*.swp
 dependency.dep
+.gitignore

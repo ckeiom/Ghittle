@@ -48,14 +48,10 @@ void main(void)
 
 	PBOOT_FLAG = 1;
 
-	create_task( SCHED_PRIO_LOWEST | TASK_FLAGS_IDLE, (unsigned long)idle_task);
-
-	/* Include testing headers here */
-
 	/* TEST BOARD */
 	printk("TEST\n");
 
-
+	idle_task();
 ERR_OUT:
 	while(1);
 

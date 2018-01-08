@@ -8,3 +8,6 @@ clean:
 	rm -f ./kernel16/kernel16.bin
 	rm -f ./kernel32/kernel32.bin
 	rm -f ./kernel64/kernel64.bin
+	make -C kernel16 clean
+	make -C kernel32 clean
+	make -C kernel64 clean

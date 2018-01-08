@@ -139,26 +139,3 @@ void setup_task( struct task* task, unsigned long flags, unsigned long entry,
 	task->flags = flags;
 }
 
-static void task1(void)
-{
-	while(1);
-		//printk("1\n");
-}
-
-static void task2(void)
-{
-	while(1);
-		//printk("  2\n");
-}
-
-static void task3(void)
-{
-	while(1);
-		//printk("    3\n");
-}
-void test_task(void)
-{
-	create_task(0, (unsigned long)task1);
-	create_task(0, (unsigned long)task2);
-	create_task(0, (unsigned long)task3);
-}

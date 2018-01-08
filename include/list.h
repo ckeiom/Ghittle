@@ -64,4 +64,10 @@ static inline void list_add_tail( struct list_header* l, struct list* item )
 	list_add(item ,(l->head.prev) );
 	l->items++;
 }
+
+static inline void list_remove(struct list_header* l, struct list* item)
+{
+	list_del(item);
+	l->items--;
+}
 #endif

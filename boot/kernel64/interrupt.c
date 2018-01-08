@@ -2,8 +2,9 @@
 #include <pic.h>
 #include <keyboard.h>
 #include <console.h>
-#include <utils.h>
+#include <memutils.h>
 #include <task.h>
+#include <sched.h>
 #include <desc.h>
 #include <timer.h>
 

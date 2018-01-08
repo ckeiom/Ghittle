@@ -3,7 +3,6 @@
 #include <asmutils.h>
 #include <sched.h>
 #include <task.h>
-
 void lock( struct mutex* m)
 {
 	if( test_set( &(m->flag), 0, 1 ) == 0 )
