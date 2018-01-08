@@ -18,10 +18,9 @@ int main(int argc, char** argv )
 	int bootloader_size;
 	int kern32_sector_count;
 	int kern64_sector_count;
-	int filesys_sector_count;
 	int source_size;
 
-	if( argc < 5 )
+	if( argc < 4 )
 		exit(-1);
 
 	if( ( d_fd = open("disk.img",O_RDWR|O_CREAT|O_TRUNC,
@@ -64,18 +63,6 @@ int main(int argc, char** argv )
 
 	printf("   %s size: [%d], %d sectors\n",argv[3],source_size,kern64_sector_count);
 
-	printf("Copying filesys image to image file...\n");
-
-	if((s_fd = open(argv[4], O_RDONLY) ) < 0)
-		exit(-1);
-
-	source_size = copyfile( s_fd, d_fd );
-	close(s_fd);
-
-	filesys_sector_count = adjust_sector_size(d_fd, source_size);
-	
-	printf("   %s size: [%d], %d sectors\n",argv[4],source_size,filesys_sector_count);
-	
 	printf("Updating image file...\n");
 
 	write_kern_info( d_fd, kern32_sector_count + kern64_sector_count, kern32_sector_count );

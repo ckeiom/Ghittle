@@ -1,7 +1,7 @@
 GHITTLE_HOME:=$(shell pwd)
 export GHITTLE_HOME
 
-all: Utils Device Task Memory Filesys Boot Disk.img
+all: Utils Device Task Memory Filesys Core Disk.img
 
 Utils:
 	@echo
@@ -33,16 +33,15 @@ Filesys:
 	@echo
 	make -C filesys
 
-Boot:
+Core:
 	@echo
-	@echo ========== Build Boot Loader ==========
+	@echo ========== Build Core ==========
 	@echo
-	make -C boot
+	make -C core
 
-Disk.img: boot/kernel16/kernel16.bin \
-		  boot/kernel32/kernel32.bin \
-		  boot/kernel64/kernel64.bin \
-		  filesys.img
+Disk.img: core/kernel16/kernel16.bin \
+		  core/kernel32/kernel32.bin \
+		  core/kernel64/kernel64.bin 
 	@echo
 	@echo ========== Make image ==========
 	@echo
@@ -52,7 +51,7 @@ Disk.img: boot/kernel16/kernel16.bin \
 	@echo
 
 clean:
-	make -C boot clean
+	make -C core clean
 	make -C task clean
 	make -C device clean
 	make -C utils clean
