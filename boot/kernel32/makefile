@@ -2,15 +2,14 @@ NASM = nasm
 GCC32 = gcc -c -m32 -ffreestanding -I$(GHITTLE_HOME)/include
 LD32 = ld -melf_i386 -nostdlib -e main -Ttext 0x10200
 OBJCOPY32 = objcopy -j .text -j .data -j .rodata -j .bss -S -O binary
-
 OBJ_DIR = obj
-SRC_DIR = src
+
 all: prepare kernel32.bin
 
 prepare: 
 	mkdir -p $(OBJ_DIR)
 
-$(OBJ_DIR)/entry.bin: $(SRC_DIR)/entry.s
+$(OBJ_DIR)/entry.bin: entry.s
 	$(NASM) -o $@ $<
 
 dep:
@@ -28,7 +27,7 @@ kernel32.bin: $(OBJ_DIR)/entry.bin $(OBJ_DIR)/kernel32.elf.bin
 
 clean:
 	rm -f *.bin
-	rm -f $(OBJ_DIR)/*.*
+	rm -rf $(OBJ_DIR)
 
 CENTRY_OBJ_FILE=main.o
 CSRC_FILES = $(wildcard ../$(SRC_DIR)/*.c)
