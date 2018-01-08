@@ -10,6 +10,8 @@
  * postfix - b, w, l ( 1, 2, 4 bytes I/O )
  */
 unsigned char in_b( unsigned short port );
-void out_b ( unsigned short port, unsigned char data );
+void out_b( unsigned short port, unsigned char data );
+unsigned short in_w( unsigned short port );
+void out_w( unsigned short port, unsigned short data );
 
 #endif

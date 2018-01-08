@@ -108,6 +108,11 @@ int adjust_sector_size( int fd, int size )
 	else
 		printf("   already aligned 512 bytes\n");
 
+	/* temp */
+	/*for(i=0;i<511*BYTEOFSECTOR;i++)
+		write(fd, &c, 1);
+	sec_cnt = ( size + to_fill + (511*BYTEOFSECTOR) ) / BYTEOFSECTOR;
+*/
 	sec_cnt = ( size + to_fill ) / BYTEOFSECTOR ;
 	return sec_cnt;
 }

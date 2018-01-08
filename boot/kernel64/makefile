@@ -17,6 +17,7 @@ AOBJ_FILES = $(notdir $(patsubst %.asm,%.o,$(ASRC_FILES)))
 OTHER_OBJ_FILES = $(GHITTLE_HOME)/utils/obj/UTILS.o
 OTHER_OBJ_FILES += $(GHITTLE_HOME)/device/obj/DEVICE.o
 OTHER_OBJ_FILES += $(GHITTLE_HOME)/task/obj/TASK.o
+OTHER_OBJ_FILES += $(GHITTLE_HOME)/filesys/obj/FILESYS.o
 
 all: prepare kernel64.bin
 
@@ -49,8 +50,8 @@ $(ENTRY_POINT_OBJ): $(ENTRY_POINT_SRC)
 internal_dep:
 	$(GCC64) -MM $(CSRC_FILES) > dependency.dep
 
-kernel64.elf: $(ENTRY_POINT_OBJ) $(COBJ_FILES) $(AOBJ_FILES)
-	$(LD64) -o $@ $^ $(OTHER_OBJ_FILES)
+kernel64.elf: $(ENTRY_POINT_OBJ) $(COBJ_FILES) $(AOBJ_FILES) $(OTHER_OBJ_FILES)
+	$(LD64) -o $@ $^
 
 ifeq (dependency.dep, $(wildcard dependancy.dep))
 include dependency.dep

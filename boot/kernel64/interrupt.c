@@ -2,10 +2,11 @@
 #include <pic.h>
 #include <keyboard.h>
 #include <console.h>
-#include <utils.h>
+#include <memutils.h>
 #include <task.h>
 #include <desc.h>
 #include <timer.h>
+#include <hdd.h>
 
 void exception_handler( int num, unsigned long e_code )
 {
@@ -79,6 +80,26 @@ void timer_handler( int num )
 	{
 		schedule_in_interrupt();
 	}
+}
+
+void hdd_handler( int num )
+{
+	char buf[] = "[INT:  , ]";
+	static int hdd_intr_count = 0;
+	unsigned char temp;
+
+	buf[5] = '0' + num / 10;
+	buf[6] = '0' + num % 10;
+	buf[8] = '0' + hdd_intr_count;
+	hdd_intr_count = ( hdd_intr_count + 1 ) % 10;
+	print_string_xy( 10, 0, buf );
+
+	if( num - PIC_IRQ_START_VECTOR == 14 )
+		set_hdd_intr_flag( 1, 1 );
+	else
+		set_hdd_intr_flag( 0, 1 );
+
+	eoi_PIC( num - PIC_IRQ_START_VECTOR );
 }
 
 unsigned char set_interrupt_flag( unsigned char enable_interrupt )

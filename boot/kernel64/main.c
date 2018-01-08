@@ -9,6 +9,10 @@
 #include <task.h>
 #include <interrupt.h>
 #include <sched.h>
+#include <hdd.h>
+#include <timer.h>
+#include <string.h>
+#include <filesys.h>
 
 void main(void)
 {
@@ -53,8 +57,23 @@ void main(void)
 	/* Include testing headers here */
 
 	/* TEST BOARD */
-	printk("TEST\n");
+	
+	printk( "Initializing HDD...\n" );
+	if( init_hdd() == 1 )
+		printk( "Pass\n" );
+	else
+		printk( "Fail\n" );
 
+	printk( "Read sector...\n" );
+	char sbuf[512];
+	read_hdd_sector( 1, 1, 0, 1, &sbuf );
+	printk("result = %s\n", sbuf);
+	
+	printk( "Initializing FS...\n" );
+	if( init_hdd() == 1 )
+		printk( "Pass\n" );
+	else
+		printk( "Fail\n" );
 
 ERR_OUT:
 	while(1);

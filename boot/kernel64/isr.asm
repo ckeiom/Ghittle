@@ -4,6 +4,7 @@ SECTION .text
 
 extern exception_handler, interrupt_handler, keyboard_handler
 extern timer_handler
+extern hdd_handler
 
 global ISR_div0, ISR_debug, ISR_nmi, ISR_breakpoint, ISR_overflow
 global ISR_boundrange, ISR_invopcode, ISR_nodev, ISR_df
@@ -375,7 +376,7 @@ ISR_hdd1:
 
 save_context
 mov rdi, 46
-call interrupt_handler
+call hdd_handler
 load_context
 iretq
 
@@ -383,7 +384,7 @@ ISR_hdd2:
 
 save_context
 mov rdi, 47
-call interrupt_handler
+call hdd_handler
 load_context
 iretq
 
