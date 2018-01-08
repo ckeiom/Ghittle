@@ -1,7 +1,7 @@
 #include <types.h>
 #include <desc.h>
 #include <isr.h>
-
+#include <memutils.h>
 
 static void set_gdt_entry8( struct gdt_entry8* ent, unsigned int addr, unsigned int limit, 
 							unsigned char flags_4_7, unsigned char flags_0_3, unsigned char type )

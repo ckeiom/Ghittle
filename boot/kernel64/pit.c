@@ -1,5 +1,6 @@
 #include <pit.h>
 #include <asmutils.h>
+#include <dio.h>
 
 void init_pit( unsigned short count, unsigned char periodic )
 {

@@ -263,7 +263,6 @@ void idle_task( void )
 			scheduler.cpu_load = 100 - (current_idle_tick - last_idle_tick ) * 100 / (current_tick - last_tick );
 		}
 
-		printk("CPU LOAD: %d\n",scheduler.cpu_load);
 		last_tick = current_tick;
 		last_idle_tick = current_idle_tick;
 

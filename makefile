@@ -53,6 +53,7 @@ Disk.img: boot/kernel16/kernel16.bin \
 
 clean:
 	make -C boot clean
+	make -C task clean
 	make -C device clean
 	make -C utils clean
 	make -C memory clean
