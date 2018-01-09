@@ -2,6 +2,7 @@
 #define __TASK_H__
 
 #include <list.h>
+#include <sync.h>
 
 #define TASK_REGISTERS 24
 #define TASK_REGISTER_SIZE 8
@@ -32,9 +33,9 @@
 #define CONTEXT_OFFSET_SS	23
 
 #define TASK_POOL_ADDR	0x800000
-#define TASK_MAX_COUNT	1024
+#define TASK_MAX	1024
 
-#define STACK_POOL_ADDR	( TASK_POOL_ADDR + sizeof( struct task )* TASK_MAX_COUNT )
+#define STACK_POOL_ADDR (TASK_POOL_ADDR + sizeof(struct task) * TASK_MAX)
 #define STACK_SIZE	8192
 
 #define TASK_INVALID_ID	0xFFFFFFFFFFFFFFFF
@@ -55,7 +56,8 @@ struct task_context
 struct task
 {
 	struct task_context context;
-	unsigned long id;
+	int id;
+	int enabled;
 	unsigned long flags;
 	
 	struct list link;
@@ -63,14 +65,15 @@ struct task
 	unsigned long stack_size;
 };
 
-struct taskpool_manager
+struct taskpool
 {
-	struct task* start_addr;
-	int max_count;
-	int use_count;
-	int alloc_count;
+	void* addr;
+	int num_task;
+
+	struct mutex lock;
 };
 
+extern struct taskpool taskpool;
 #pragma pack(pop)
 
 void init_taskpool(void);
@@ -81,17 +84,11 @@ struct task* create_task( unsigned long flags, unsigned long entry );
 void setup_task( struct task* task, unsigned long flags, unsigned long entry,
 				 void* stack, unsigned long stack_size );
 
-
-int get_task_count( void );
-struct task* get_task_in_pool( int offset );
-unsigned char task_exist( unsigned long id );
-
-void idle_task(void);
-void halt(void);
-
-
-void load_gdtr( unsigned long addr );
-void load_tss( unsigned short addr );
-void load_idtr( unsigned long addr );
+void load_gdtr(unsigned long addr);
+void load_tss(unsigned short addr);
+void load_idtr(unsigned long addr);
 unsigned long read_tsc(void);
+unsigned long read_rflags(void);
+
+void test_task(void);
 #endif
