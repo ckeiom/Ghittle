@@ -9,24 +9,26 @@
 #include <task.h>
 #include <interrupt.h>
 #include <sched.h>
+#include <hdd.h>
+#include <filesys.h>
+#include <page.h>
+#include <kmem.h>
 
 void main(void)
 {
 	int x,y;
 	int err;
 
-	init_console(0,10);
+	init_console(0, 10);
 	printk("Console initialized\n");
-
-	get_cursor( &x, &y );
 
 	printk("Initializing GDT...\n");
 	init_GDT_TSS();
 
-	load_gdtr( GDTR_START_ADDR );
+	load_gdtr(GDTR_START_ADDR);
 
 	printk("Loading TSS segment...\n");
-	load_tss( GDT_TSS_SEGMENT );
+	load_tss(GDT_TSS_SEGMENT);
 
 	printk("Initializing IDT...\n");
 	init_IDT();
@@ -36,23 +38,35 @@ void main(void)
 
 	init_scheduler();
 	init_pit( MS_TO_COUNT(1), 1 );
+
 	err = init_keyboard();
-	if( err < 0 )
+	if(err < 0)
 		goto ERR_OUT;
 
-	change_led(0, 0, 0);
 	printk("Initializing PIC...\n");
 	init_PIC();
 	mask_PIC(0);
 	enable_interrupt();
 
+	err = init_fs();
+	if(err < 0)
+		goto ERR_OUT;
+
 	PBOOT_FLAG = 1;
 
-	/* TEST BOARD */
-	printk("TEST\n");
+	init_page_pool();
+	init_kmem();
+	printk("Boot finished\n");
 
+
+	char *km = alloc_kmem();
+	printk("KM: %x\n", km);
+	*km = 3;
+
+	printk("ll\n");
 	idle_task();
 ERR_OUT:
+	printk("PANIC\n");
 	while(1);
 
 }

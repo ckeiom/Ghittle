@@ -139,14 +139,14 @@ int init_pagetable()
 	set_pd_32(d, 0, PMD_START, PD_DEFAULT);
 
 	/* We have only one PGD entry */
-	for (i=1; i<PAGE_MAXENTRY_COUNT; i++)
-		set_pd_32( &(d[i]), 0, 0, 0);
+	for (i=1; i < PAGE_MAXENTRY_COUNT; i++)
+		set_pd_32(&(d[i]), 0, 0, 0);
 	
 	/* PMD table */
 
 	d = (struct pd*)PMD_START;
 
-	/* and we have 64 PMD entries */
+	/* and we have 128 PMD entries */
 	for(i=0; i<NUM_PMD_ENTRY; i++)
 		set_pd_32( &(d[i]), 0, PD_START + (i*PAGETABLE_SIZE), PD_DEFAULT);
 
@@ -157,10 +157,10 @@ int init_pagetable()
 	e = (struct pte*) PD_START;
 	map_addr = 0;
 	map_high_addr = 0;
-	for (i=0; i<NUM_PMD_ENTRY*NUM_PD_ENTRY; i++)
+	for (i=0; i<NUM_PMD_ENTRY * NUM_PD_ENTRY; i++)
 	{
-		set_pte_32( &(e[i]), map_high_addr ,map_addr, PTE_DEFAULT | PTE_PAE);
-		map_addr += PAGE_SIZE;
+		set_pte_32( &(e[i]), map_high_addr ,map_addr, PTE_DEFAULT | PTE_PAE );
+		map_addr += SPAGE_SIZE;
 		if(map_addr == 0)
 			map_high_addr++;
 	}

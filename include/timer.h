@@ -3,4 +3,6 @@
 
 extern volatile unsigned long tick;
 
+void mdelay( unsigned long msec );
+
 #endif

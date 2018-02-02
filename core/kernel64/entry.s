@@ -15,7 +15,6 @@ mov ss, ax
 
 mov rsp, 0x6FFFF8
 mov rbp, 0x6FFFF8
-
 call main
 
 jmp $

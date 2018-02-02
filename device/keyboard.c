@@ -367,18 +367,9 @@ unsigned char init_keyboard(void)
 	res = wait_for_ack();
 
 	set_interrupt_flag( prev_interrupt );
+	change_led(0, 0, 0);
 	return res;
 	
-	/*
-	for( i=0; i<100 ; i++)
-	{
-		wait_obuffer_empty();
-		if( in_b(0x60) == 0xFA )
-			return 0;
-	}
-	
-	return -1;
-	*/
 }
 
 unsigned char get_keycode(void)
