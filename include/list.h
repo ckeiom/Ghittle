@@ -1,12 +1,13 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
-#include <types.h>
+#include "types.h"
 
 #define list_entry( ptr, type, member ) \
 	container_of( ptr, type, member )
 
 #pragma pack( push, 1 )
+
 struct list
 {
 	struct list* next;
@@ -31,12 +32,13 @@ static inline void init_list_header(struct list_header* l)
 	l->items = 0;
 	init_list( &(l->head) );	
 }
-static inline void list_add(struct list* new, struct list* head)
+
+static inline void list_add(struct list* new_item, struct list* prev_item)
 {
-	head->next->prev = new;
-	new->next = head->next;
-	new->prev = head;
-	head->next = new;
+	prev_item->next->prev = new_item;
+	new_item->next = prev_item->next;
+	new_item->prev = prev_item;
+	prev_item->next = new_item;
 }
 
 static inline void list_del(struct list* del)
