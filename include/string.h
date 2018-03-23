@@ -3,14 +3,16 @@
 
 #include <stdarg.h>
 
-int strlen( const char* str );
-void reverse_string( char* str );
+int strlen(const char* str);
+int strcmp(char* a, char* b);
+void strcpy(char* dst, char* src);
+void reverse_string(char* str);
 
 /* string to int */
-int stoi( const char* str );
-int itos( int val, char* str, unsigned char hex );
+int stoi(const char* str);
+int itos(long val, char* str, unsigned char hex);
 
-int sprintf( char* buf, const char* fstring, ... );
-int vsprintf( char* buf, const char* fstring, va_list ap );
+int sprintf(char* buf, const char* fstring, ...);
+int vsprintf(char* buf, const char* fstring, va_list ap);
 
 #endif

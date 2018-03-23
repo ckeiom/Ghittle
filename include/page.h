@@ -1,6 +1,7 @@
 #ifndef __PAGE_H__
 #define __PAGE_H__
 
+#include <types.h>
 #define PTE_PRESENT		0x1
 #define PTE_WRITABLE	0x2
 #define PTE_USER		0x4
@@ -14,6 +15,8 @@
 #define PTE_PAT		0x1000 /* Page Attribute Table Index */
 
 #define PTE_DEFAULT	( PTE_PRESENT | PTE_WRITABLE )
+#define PTE_MASK		0x7FFFFFFFFFFFF000
+
 
 #define PD_PRESENT		0x1
 #define PD_WRITABLE		0x2
@@ -25,6 +28,7 @@
 /* 0x200, 0x400, 0x800 are available */
 
 #define PD_DEFAULT	( PD_PRESENT | PD_WRITABLE )
+#define PD_MASK			(u64)0x7FFFFFFFFFFFF000
 
 /* These only cover Static kernel memory */
 #define PGD_START		0x100000 /* Only 1 PGD entry */
@@ -33,12 +37,17 @@
 
 #define NUM_PGD_ENTRY	1
 #define NUM_PMD_ENTRY	1
-#define NUM_PD_ENTRY	8
+#define NUM_PD_ENTRY	16
 
 #define PAGETABLE_SIZE	0x1000
 #define SPAGE_SIZE 		0x200000 /* Static Page size: 2MB */
 #define DPAGE_SIZE		0x1000
+#define DPAGE_MASK		0xFFFFFFFFFFFFF000
 #define PAGE_MAXENTRY_COUNT		512
+
+#define PAGE_PHYS_ADDR	0x2000000
+#define PAGE_PHYS_SIZE	0xE000000
+#define NUM_PHYS_PAGES	(PAGE_PHYS_SIZE / DPAGE_SIZE)
 
 
 /* 
@@ -51,19 +60,11 @@
    0x0			~ 0x100 0000:	Static memory (Kernel)
    0x100 0000	~				Dynamic memory
  */
-#define PAGE_KERN_POOL_ADDR		0x1000000
-#define PAGE_KERN_POOL_SIZE		0xFF000000
-#define PAGE_USER_POOL_ADDR		0x100000000
-#define PAGE_USER_POOL_SIZE		0xF00000000
 
-#define PAGE_PHYS_POOL_ADDR	0x1000000
-#define PAGE_PHYS_POOL_SIZE 0xFFF000000
-#define NUM_PHYS_PAGES	(PAGE_PHYS_POOL_SIZE / DPAGE_SIZE)
-
-#define PGD_OFFSET(addr)	((addr >> 39) & 0x1FF)
-#define PUD_OFFSET(addr)	((addr >> 30) & 0x1FF)
-#define PMD_OFFSET(addr)	((addr >> 21) & 0x1FF)
-#define PD_OFFSET(addr)		((addr >> 12) & 0x1FF)
+#define PGD_OFFSET(addr)	(((u64)addr >> 39) & 0x1FF)
+#define PUD_OFFSET(addr)	(((u64)addr >> 30) & 0x1FF)
+#define PMD_OFFSET(addr)	(((u64)addr >> 21) & 0x1FF)
+#define PD_OFFSET(addr)		(((u64)addr >> 12) & 0x1FF)
 
 #pragma pack(push, 1)
 struct pte
@@ -92,17 +93,43 @@ void set_pd_32(struct pd* d,
 			   unsigned short flags);
 
 void set_pte(struct pte* e,
-			 unsigned long addr,
+			 u64 addr,
 			 unsigned short flags);
 void set_pd(struct pd* d,
-			unsigned long addr,
+			u64 addr,
 			unsigned short flags);
 
 void* alloc_pages(int num);
-int setup_page(int flags, unsigned long phys, unsigned long virt);
 void init_page_pool(void);
 
-unsigned long get_pud_addr(unsigned long pgd, unsigned long addr);
-unsigned long get_pmd_addr(unsigned long pud, unsigned long addr);
-unsigned long get_pte_addr(unsigned long pmd, unsigned long addr);
+struct pte* get_pte(int alloc, struct pd* pgd, u64 addr);
+
+u64 get_pud_addr(u64 pgd, u64 addr);
+u64 get_pmd_addr(u64 pud, u64 addr);
+u64 get_pte_addr(u64 pmd, u64 addr);
+
+static inline struct pd* get_pud(struct pd* pgd, u64 addr)
+{
+	return pgd + PGD_OFFSET(addr);
+}
+static inline struct pd* get_pmd(struct pd* pud, u64 addr)
+{
+	return pud + PUD_OFFSET(addr);
+}
+static inline struct pd* get_pd(struct pd* pmd, u64 addr)
+{
+	return pmd + PMD_OFFSET(addr);
+}
+static inline struct pd* pd_addr(struct pd* pd)
+{
+	return (struct pd*)(*((u64 *)pd) & PD_MASK);
+}
+static inline int pd_present(struct pd* pd)
+{
+	return (*((u64 *)pd) & PD_PRESENT)? 1:0;
+}
+static inline int pte_present(struct pte* pte)
+{
+	return (*((u64 *)pte) & PTE_PRESENT)? 1:0;
+}
 #endif /* __PAGE_H__ */

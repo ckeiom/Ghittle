@@ -8,7 +8,6 @@ void read_cpuid(unsigned int in_eax,
 				unsigned int *edx);
 void switch_to_64bit(void);
 
-#define PBOOT_FLAG	*((unsigned char* )0x7DFC )
 
 #define KMEM_START 	0x100000
 #define KMEM_SIZE	0x500000

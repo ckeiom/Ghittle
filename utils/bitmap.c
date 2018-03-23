@@ -5,74 +5,102 @@
 
 void init_bitmap(struct bitmap *bitmap, int nr_entry, char* map)
 {
-	unsigned long *pos;
-	
 	bitmap->nr_entry = nr_entry;
 	bitmap->map = map;
 	
-	memset(map, 0, (nr_entry - 1)/8 + 1);
+	memset(map, 0, (nr_entry - 1)/BITS_PER_BYTE + 1);
 }
 
-void bitmap_set(struct bitmap* bm, int loc)
+void bitmap_set(struct bitmap* bm, int loc, int num)
 {
+	int from = loc;
+	int to = loc + num;
 	char* pos = bm->map;
 	char val;
+	int i;
 
-	pos += loc / sizeof(char);
-	loc = loc % sizeof(char);
+	pos += from / BITS_PER_BYTE;
 	val = *pos;
 
-	val |= (char)1 << loc;
+	while(from < to)
+	{
+		val = val | (char)1 << (from++ % BITS_PER_BYTE);
+		if(!(from % BITS_PER_BYTE))
+		{
+			*pos++ = val;
+			val = *pos;
+		}
+	}
 	*pos = val;
 }
 
-void bitmap_clear(struct bitmap* bm, int loc)
+void bitmap_clear(struct bitmap* bm, int loc, int num)
 {
+	int from = loc;
+	int to = loc + num;
 	char* pos = bm->map;
 	char val;
+	int i;
 
-	pos += loc / sizeof(char);
-	loc = loc % sizeof(char);
+	pos += from / BITS_PER_BYTE;
 	val = *pos;
 
-	val &= ~((char)1 << loc);
+	while(from < to)
+	{
+		val = val & ~((char)1 << (from++ % BITS_PER_BYTE));
+		if(!(from % BITS_PER_BYTE))
+		{
+			*pos++ = val;
+			val = *pos;
+		}
+	}
 	*pos = val;
 }
 
-int bitmap_test_set(struct bitmap* bm, int loc)
+int bitmap_test(struct bitmap* bm, int loc, int num, int set)
 {
+	int from = loc;
+	int to = loc + num;
 	char* pos = bm->map;
 	char val;
+	int i;
 
-	pos += loc / sizeof(char);
-	loc = loc % sizeof(char);
+	pos += from / BITS_PER_BYTE;
 	val = *pos;
 
-	if(!(val & ((char)1 << loc)))
+	while(from < to)
 	{
-		val |= (char)1 << loc;
-		*pos = val;
-		return 0;
+		if(set && !((val >> (from % BITS_PER_BYTE)) % 1))
+				return -1;
+		if(!set && ((val >> (from % BITS_PER_BYTE)) % 1))
+				return -1;
+
+		if(!(++from % BITS_PER_BYTE))
+			val = *pos++;
 	}
-	else
-		return -1;
+	return 0;
 }
 
-int bitmap_test_clear(struct bitmap* bm, int loc)
+int bitmap_find_free(struct bitmap* bm, int num)
 {
 	char* pos = bm->map;
-	char val;
+	int from = 0;
+	int to = from + num;
 
-	pos += loc / sizeof(char);
-	loc = loc % sizeof(char);
-	val = *pos;
-
-	if((val & ((char)1 << loc)))
+	while(to < bm->nr_entry)
 	{
-		val &= ~((char)1 << loc);
-		*pos = val;
-		return 0;
+		if(bitmap_test(bm, from, num, BITMAP_CLEAR) < 0)
+		{
+			from++;
+			to++;
+		}
+		else
+		{
+			bitmap_set(bm, from, num);
+			return from;
+		}
 	}
-	else
-		return -1;
+	return -1;
 }
+
+

@@ -1,3 +1,5 @@
+/* This file is initially written by J. Hyun on 20170509 */
+
 #include <string.h>
 #include <memutils.h>
 
@@ -7,6 +9,28 @@ int strlen( const char* str )
 	for(i=0; ; i++ )
 		if( str[i] == '\0' )
 			return i;
+}
+
+int strcmp(char* a, char* b)
+{
+	while((*a != '\0') && (*b != '\0'))
+	{
+		if(*a != *b)
+			return (*b - *a);
+		a++; b++;
+	}
+
+	if((*a != '\0') || (*b != '\0'))
+		return (*b - *a);
+	return 0;
+}
+
+void strcpy(char* dst, char* src)
+{
+	while(*src != '\0')
+		*dst++ = *src++;
+
+	*src = '\0';
 }
 
 void reverse_string( char *str )
@@ -71,11 +95,11 @@ int stoi( const char* str )
 
 
  /* returns the # of digits */
-int itos( int val, char* str, unsigned char hex )
+int itos( long val, char* str, unsigned char hex )
 {
-	int tmp;
+	long tmp;
 	char* pos;
-	int i,j;
+	long i,j;
 
 	i=1;
 	pos = str;
@@ -252,14 +276,16 @@ int vsprintf( char* buf, const char* fstring, va_list ap )
 					break;
 				case 'd':
 				case 'i':
-					buf_index += itos( (int)(va_arg(ap,int) ), buf+buf_index, 0 );
+					buf_index += itos( (int)(va_arg(ap,int) ), buf+buf_index, 0);
 					break;
 				case 'x':
+					buf_index += itos( (int)(va_arg(ap,int) ), buf+buf_index, 1);
+					break;
 				case 'X':
-					buf_index += itos( (int)(va_arg(ap,int) ), buf+buf_index, 1 );
+					buf_index += itos( (long)(va_arg(ap,long) ), buf+buf_index, 1);
 					break;
 				case 'q':
-					buf_index += itos( (long)(va_arg(ap,long) ), buf+buf_index, 0 );
+					buf_index += itos( (long)(va_arg(ap,long) ), buf+buf_index, 0);
 					break;
 				default:
 					buf[buf_index++] = fstring[i];

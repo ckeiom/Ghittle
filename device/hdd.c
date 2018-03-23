@@ -1,69 +1,66 @@
 #include <hdd.h>
 
-static struct hdd_mgr h_mgr;
+static struct hdd hdd;
 
-unsigned char init_hdd( void )
+int init_hdd(void)
 {
-	init_mutex( &( h_mgr.mut ) );
+	init_mutex(&hdd.mutex);
 
-	h_mgr.p_intr = 0;
-	h_mgr.s_intr = 0;
+	hdd.int_primary = 0;
+	hdd.int_secondary = 0;
 	
-	out_b( HDD_PORT_PRIMARYBASE + HDD_PORT_INDEX_DIGITALOUTPUT, 0 );
-	out_b( HDD_PORT_SECONDARYBASE + HDD_PORT_INDEX_DIGITALOUTPUT, 0 );
+	out_b(HDD_PORT_PRIMARY + HDD_INDEX_DIGITALOUTPUT, 0);
+	out_b(HDD_PORT_SECONDARY + HDD_INDEX_DIGITALOUTPUT, 0);
 	
-	if( read_hdd_info( 1, 1, &( h_mgr.h_info ) ) == 0 )
+	if(read_hdd_info(HDD_PRIMARY, HDD_MASTER, &hdd.hdd_info) < 0)
 	{
-		h_mgr.detected = 0;
-		h_mgr.write = 0;
-		
-		return 0;
+		hdd.detected = 0;
+		hdd.writable = 0;
+		return -1;
 	}
 
-	h_mgr.detected = 1;
-	if ( memcmp( h_mgr.h_info.model, "QEMU", 4 ) == 0 )
-		h_mgr.write = 1;
+	hdd.detected = 1;
+	if(memcmp(hdd.hdd_info.model, "QEMU", 4) == 0)
+		hdd.writable = 1;
 	else
-		h_mgr.write = 0;
-
-	return 1;
-}
-
-static unsigned char read_hdd_stat( unsigned char p )
-{
-	if( p == 1 )
-		return in_b( HDD_PORT_PRIMARYBASE + HDD_PORT_INDEX_STATUS );
-
-	return in_b( HDD_PORT_SECONDARYBASE + HDD_PORT_INDEX_STATUS );
-}
-
-static unsigned char wait_hdd_nobusy( unsigned char p )
-{
-	unsigned long start_tcount;
-	unsigned char stat;
-
-	start_tcount = tick;
-
-	while( ( tick - start_tcount ) <= HDD_WAITTIME )
-	{
-		stat = read_hdd_stat( p );
-
-		if( ( stat & HDD_STATUS_BUSY ) != HDD_STATUS_BUSY )
-			return 1;
-		
-		/* On implementing multi-tasking version, 
-		   mdelay() changes to schedule() */
-		mdelay( 1 ); 
-	}
+		hdd.writable = 0;
 
 	return 0;
 }
 
-unsigned char read_hdd_info( unsigned char p,
-							 unsigned char m,
-							 struct hdd_info *h_info)
+static unsigned char read_hdd_stat(unsigned char primary)
 {
-	unsigned short port_base;
+	if(primary)
+		return in_b(HDD_PORT_PRIMARY + HDD_INDEX_STATUS);
+
+	return in_b(HDD_PORT_SECONDARY + HDD_INDEX_STATUS);
+}
+
+static int wait_hdd_nobusy(unsigned char primary)
+{
+	unsigned long tick_start;
+	unsigned char stat;
+
+	tick_start = tick;
+
+	while((tick - tick_start) <= HDD_WAITTIME)
+	{
+		stat = read_hdd_stat(primary);
+		if(!(stat & HDD_STATUS_BUSY))
+			return 0;
+		
+		/* On implementing multi-tasking version, 
+		   mdelay() changes to schedule() */
+		mdelay(1); 
+	}
+	return -1;
+}
+
+int read_hdd_info(unsigned char primary,
+				  unsigned char master,
+				  struct hdd_info *hdd_info)
+{
+	unsigned short port;
 	unsigned long last_tcount;
 	unsigned char stat;
 	unsigned char dflag;
@@ -71,298 +68,256 @@ unsigned char read_hdd_info( unsigned char p,
 	unsigned short temp;
 	unsigned char wait_result;
 
-	if( p == 1 )
-		port_base = HDD_PORT_PRIMARYBASE;
+	if(primary)
+		port = HDD_PORT_PRIMARY;
 	else
-		port_base = HDD_PORT_SECONDARYBASE;
+		port = HDD_PORT_SECONDARY;
 
-	lock( &( h_mgr.mut ) );
+	lock(&hdd.mutex);
 	
-	if( wait_hdd_nobusy( p ) == 0 )
-	{
-		unlock( &( h_mgr.mut ) );
-		return 0;
-	}
+	if(wait_hdd_nobusy(primary) < 0)
+		goto err_out;
 
-	if( m == 1 )
+	if(master)
 		dflag = HDD_DRIVEANDHEAD_LBA;
 	else
 		dflag = HDD_DRIVEANDHEAD_LBA | HDD_DRIVEANDHEAD_SLAVE;
 
-	out_b( port_base + HDD_PORT_INDEX_DRIVEANDHEAD, dflag );
+	out_b(port + HDD_INDEX_DRIVEANDHEAD, dflag);
 
-	if( wait_hdd_ready( p ) == 0 )
-	{
-		unlock( &( h_mgr.mut ) );
-		return 0;
-	}
+	if(wait_hdd_ready(primary) < 0)
+		goto err_out;
 
-	set_hdd_intr_flag( p, 0 );
+	set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
+	out_b(port + HDD_INDEX_COMMAND, HDD_COMMAND_IDENTIFY);
 
-	out_b( port_base + HDD_PORT_INDEX_COMMAND,
-			HDD_COMMAND_IDENTIFY );
-	wait_result = wait_hdd_intr( p );
-	stat = read_hdd_stat( p );
-	if( ( wait_result == 0 ) ||
-			( ( stat & HDD_STATUS_ERROR ) == HDD_STATUS_ERROR ) )
-	{
-		unlock( &( h_mgr.mut ) );
-		return 0;
-	}
+	if(wait_hdd_interrupt(primary) < 0)
+		goto err_out;
+
+	stat = read_hdd_stat(primary);
+	if(stat & HDD_STATUS_ERROR)
+		goto err_out;
 
 	/* Read one sector */
-	for( i = 0; i < 512 / 2; i++ )
-		( ( unsigned short * ) h_info )[i] =
-			in_w( port_base + HDD_PORT_INDEX_DATA );
+	for(i = 0; i < HDD_SECTOR_SIZE / sizeof(unsigned short); i++)
+		((unsigned short* )hdd_info)[i] = in_w(port + HDD_INDEX_DATA);
 
-	swap_byte_in_word( h_info->model, sizeof( h_info->model ) / 2 );
-	swap_byte_in_word( h_info->serial, sizeof( h_info->serial ) / 2 );
+	swap_byte_in_word(hdd_info->model, sizeof(hdd_info->model) / 2);
+	swap_byte_in_word(hdd_info->serial, sizeof(hdd_info->serial) / 2);
 
-	unlock( &( h_mgr.mut ) );
+	unlock(&hdd.mutex);
+	return 0;
 
-	return 1;
+err_out:
+	unlock(&hdd.mutex);
+	return -1;
 }
 
-static void swap_byte_in_word( unsigned short *data, int wcount )
+static void swap_byte_in_word(unsigned short *data, int word_count)
 {
 	int i;
-	unsigned short temp;
+	unsigned short tmp;
 
-	for( i = 0; i < wcount; i++ )
+	for(i = 0; i < word_count; i++)
 	{
-		temp = data[i];
-		data[i] = ( temp >> 8 ) | ( temp << 8 );
+		tmp = data[i];
+		data[i] = (tmp >> 8) | (tmp << 8);
 	}
 }
 
-static unsigned char wait_hdd_ready( unsigned char p )
+static int wait_hdd_ready(unsigned char primary)
 {
-	unsigned long start_tcount;
+	unsigned long tick_start;
 	unsigned char stat;
 
-	start_tcount = tick;
+	tick_start = tick;
 
-	while( ( tick - start_tcount ) <= HDD_WAITTIME)
+	while((tick - tick_start) <= HDD_WAITTIME)
 	{
-
-		stat = read_hdd_stat( p );
-		if( ( stat & HDD_STATUS_READY ) == HDD_STATUS_READY )
-			return 1;
+		stat = read_hdd_stat(primary);
+		if(stat & HDD_STATUS_READY)
+			return 0;
 		
 		/* On implementing multi-tasking version, 
 		   mdelay() changes to schedule() */
-		mdelay( 1 );
+		mdelay(1);
 	}
-	
-	return 0;
+	return -1;
 }
 
-static unsigned char wait_hdd_intr( unsigned char p )
+static int wait_hdd_interrupt(unsigned char primary)
 {
-	unsigned long tcount;
+	unsigned long tick_start;
 
-	tcount = tick;
+	tick_start = tick;
 
-	while( ( tick - tcount ) <= HDD_WAITTIME )
+	while((tick - tick_start) <= HDD_WAITTIME)
 	{
-		if( ( p == 1 ) && ( h_mgr.p_intr == 1 ) )
-			return 1;
-		else if( ( p == 0 ) && ( h_mgr.s_intr == 1 ) )
-			return 1;
+		if(primary && hdd.int_primary)
+			return 0;
+		else if(!primary && hdd.int_secondary)
+			return 0;
+
+		mdelay(1);
 	}
-
-	return 0;
+	return -1;
 }
 
-void set_hdd_intr_flag( unsigned char p, unsigned char flag )
+void set_hdd_interrupt_state(unsigned char primary, unsigned char state)
 {
-	if( p == 1 )
-		h_mgr.p_intr = flag;
+	if(primary)
+		hdd.int_primary = state;
 	else
-		h_mgr.s_intr = flag;
+		hdd.int_secondary = state;
 }
 
-int read_hdd_sector( unsigned char p, unsigned char m,
-					 unsigned int lba, int sector_count,
-					 char *buf)
+int read_hdd_sector(unsigned char primary, unsigned char master,
+					unsigned int lba, int sectors, char *buf)
 {
-	unsigned short port_base;
+	unsigned short port;
 	int i, j;
 	unsigned char dflag;
 	unsigned char stat;
-	long rcount = 0;
-	unsigned char wait_result;
 	
-	if( ( h_mgr.detected == 0 ) ||
-		( sector_count <= 0 ) || ( 256 < sector_count ) ||
-		( ( lba + sector_count ) >= h_mgr.h_info.total_sector ) )
-		return 0;
+	if(sectors <= 0 || sectors > 256)
+		return -1;
+
+	lock(&hdd.mutex);
 	
-	if( p == 1 )
-		port_base = HDD_PORT_PRIMARYBASE;
+	if(!hdd.detected)
+		goto err_out;
+
+	if((lba + sectors) >= hdd.hdd_info.total_sector)
+		goto err_out;
+	
+	if(primary)
+		port = HDD_PORT_PRIMARY;
 	else
-		port_base = HDD_PORT_SECONDARYBASE;
+		port = HDD_PORT_SECONDARY;
 
-	lock( &( h_mgr.mut ) );
+	if(wait_hdd_nobusy(primary) < 0)
+		goto err_out;
 
-	if( wait_hdd_nobusy( p ) == 0 )
-	{
-		unlock( &( h_mgr.mut ) );
-		return 0;
-	}
-
-	/* Set data register */
-	out_b( port_base + HDD_PORT_INDEX_SECTORCOUNT, sector_count );
-	out_b( port_base + HDD_PORT_INDEX_SECTORNUMBER, lba );
-	out_b( port_base + HDD_PORT_INDEX_CYLINDERLSB, lba >> 8 );
-	out_b( port_base + HDD_PORT_INDEX_CYLINDERMSB, lba >> 16 );
+	out_b(port + HDD_INDEX_SECTORCOUNT, sectors);
+	out_b(port + HDD_INDEX_SECTORNUMBER, lba);
+	out_b(port + HDD_INDEX_CYLINDERLSB, lba >> 8);
+	out_b(port + HDD_INDEX_CYLINDERMSB, lba >> 16);
 				
-	if( m == 1 )
+	if(master)
 		dflag = HDD_DRIVEANDHEAD_LBA;
 	else
 		dflag = HDD_DRIVEANDHEAD_LBA | HDD_DRIVEANDHEAD_SLAVE;
 
-	out_b( port_base + HDD_PORT_INDEX_DRIVEANDHEAD,
-			dflag | ( ( lba >> 24 ) & 0x0F ) );
+	out_b(port + HDD_INDEX_DRIVEANDHEAD, dflag | ((lba >> 24) & 0x0F));
 
-	if( wait_hdd_ready( p ) == 0 )
-	{
-		unlock( &( h_mgr.mut ) );
-		return 0;
-	}
+	if(wait_hdd_ready(primary) < 0)
+		goto err_out;
 
-	set_hdd_intr_flag( p, 0 );
-	out_b( port_base + HDD_PORT_INDEX_COMMAND, HDD_COMMAND_READ );
+	set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
+	out_b(port + HDD_INDEX_COMMAND, HDD_COMMAND_READ);
 
 	/* Receive data after waiting interrupt */
-	for( i = 0; i < sector_count; i++ )
+	for(i = 0; i < sectors; i++)
 	{
-		stat = read_hdd_stat( p );
-		if( ( stat & HDD_STATUS_ERROR ) == HDD_STATUS_ERROR )
-		{
-			printk( "Error Occur\n" );
-			unlock( &( h_mgr.mut ) );
-			return i;
-		}
+		stat = read_hdd_stat(primary);
+		if(stat & HDD_STATUS_ERROR)
+			goto err_out;
 
-		if( ( stat & HDD_STATUS_DATAREQUEST ) != HDD_STATUS_DATAREQUEST )
+		if(!(stat & HDD_STATUS_DATAREQUEST))
 		{
-			wait_result = wait_hdd_intr( p );
-			set_hdd_intr_flag( p, 0 );
-			if( wait_result == 0 )
+			if(wait_hdd_interrupt(primary) < 0)
 			{
-				printk( "Interrult Not Occur\n" );
-				unlock( &( h_mgr.mut ) );
-				return 0;
+				set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
+				goto err_out;
 			}
+			set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
 		}
 		
-		for( j = 0; j < 512 / 2; j++ )
-			( ( unsigned short * ) buf )[rcount++]
-				= in_w( port_base + HDD_PORT_INDEX_DATA );
-
+		for(j = 0; j < HDD_SECTOR_SIZE / sizeof(unsigned short); j++)
+			((unsigned short* )buf)[j] = in_w(port + HDD_INDEX_DATA);
 	}
+	unlock(&hdd.mutex);
+	return 0;
 
-	unlock( &( h_mgr.mut ) );
-
-	return i;
+err_out:
+	unlock(&hdd.mutex);
+	return -1;
 }
 
-int write_hdd_sector( unsigned char p, unsigned char m,
-		              unsigned int lba, int sector_count,
-					  char *buf)
+int write_hdd_sector(unsigned char primary, unsigned char master,
+		             unsigned int lba, int sectors, char *buf)
 {
-	unsigned short port_base;
-	unsigned short temp;
+	unsigned short port;
+	unsigned short tmp;
 	int i, j;
 	unsigned char dflag;
 	unsigned char stat;
 	long rcount = 0;
 	unsigned char wait_result;
 
-	if( ( h_mgr.write == 0 ) ||
-		( sector_count <= 0 ) || ( 256 < sector_count ) ||
-		( ( lba + sector_count ) >= h_mgr.h_info.total_sector ) )
-		return 0;
+	if((sectors <= 0) || (sectors > 256))
+		return -1;
 
-	if( p == 1 )
-		port_base = HDD_PORT_PRIMARYBASE;
+	lock(&hdd.mutex);
+
+	if((!hdd.detected) || (!hdd.writable))
+		goto err_out;
+
+	if((lba + sectors) >= hdd.hdd_info.total_sector)
+		goto err_out;
+
+	if(primary)
+		port = HDD_PORT_PRIMARY;
 	else
-		port_base = HDD_PORT_SECONDARYBASE;
+		port = HDD_PORT_SECONDARY;
 
-	lock( &( h_mgr.mut ) );
-	
-	if( wait_hdd_nobusy( p ) == 0 ) {
-		unlock( &( h_mgr.mut ) );
-		return 0;
-	}
+	if(wait_hdd_nobusy(primary) < 0)
+		goto err_out;
 
-	out_b( port_base + HDD_PORT_INDEX_SECTORCOUNT, sector_count );
-	out_b( port_base + HDD_PORT_INDEX_SECTORNUMBER, lba );
-	out_b( port_base + HDD_PORT_INDEX_CYLINDERLSB, lba >> 8 );
-	out_b( port_base + HDD_PORT_INDEX_CYLINDERMSB, lba >> 16 );
+	out_b(port + HDD_INDEX_SECTORCOUNT, sectors);
+	out_b(port + HDD_INDEX_SECTORNUMBER, lba);
+	out_b(port + HDD_INDEX_CYLINDERLSB, lba >> 8);
+	out_b(port + HDD_INDEX_CYLINDERMSB, lba >> 16);
 
-	if( m == 1 )
+	if(master)
 		dflag = HDD_DRIVEANDHEAD_LBA;
 	else
 		dflag = HDD_DRIVEANDHEAD_LBA | HDD_DRIVEANDHEAD_SLAVE;
 
-	out_b( port_base + HDD_PORT_INDEX_DRIVEANDHEAD,
-			dflag | ( ( lba >> 24 ) & 0x0F ) );
+	out_b(port + HDD_INDEX_DRIVEANDHEAD, dflag | ((lba >> 24) & 0x0F));
 
-	if ( wait_hdd_ready ( p ) == 0 )
+	if(wait_hdd_ready(primary) < 0)
+		goto err_out;
+
+	set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
+	out_b(port + HDD_INDEX_COMMAND, HDD_COMMAND_WRITE);
+
+	for(i = 0; i < sectors; i++)
 	{
-		unlock( &( h_mgr.mut ) );
-		return 0;
-	}
+		set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
+		for(j = 0; j < HDD_SECTOR_SIZE / sizeof(unsigned short); j++)
+			out_w(port + HDD_INDEX_DATA, ((unsigned short *) buf)[j]);
 
-	set_hdd_intr_flag( p, 0 );
-	out_b( port_base + HDD_PORT_INDEX_COMMAND, HDD_COMMAND_WRITE );
+		stat = read_hdd_stat(primary);
+		if(stat & HDD_STATUS_ERROR)
+			goto err_out;
 
-	while( 1 )
-	{
-		stat = read_hdd_stat( p );
-		if( ( stat & HDD_STATUS_ERROR ) == HDD_STATUS_ERROR )
+		if(!(stat & HDD_STATUS_DATAREQUEST))
 		{
-			unlock( &( h_mgr.mut ) );
-			return 0;
-		}
-
-		if( ( stat & HDD_STATUS_DATAREQUEST ) == HDD_STATUS_DATAREQUEST )
-			break;
-
-		mdelay( 1 );
-	}
-
-	for( i = 0; i < sector_count; i++ )
-	{
-		set_hdd_intr_flag( p, 0 );
-		for( j = 0; j < 512 / 2; j++ )
-			out_w( port_base + HDD_PORT_INDEX_DATA,
-					( ( unsigned short * ) buf )[rcount++] );
-
-		stat = read_hdd_stat( p );
-		if( ( stat & HDD_STATUS_ERROR ) == HDD_STATUS_ERROR )
-		{
-			unlock( &( h_mgr.mut ) );
-			return i;
-		}
-
-		if( ( stat & HDD_STATUS_DATAREQUEST ) != HDD_STATUS_DATAREQUEST )
-		{
-			wait_result = wait_hdd_intr( p );
-			set_hdd_intr_flag( p, 0 );
-			if( wait_result == 0 )
+			if(wait_hdd_interrupt(primary) < 0)
 			{
-				unlock( &( h_mgr.mut ) );
-				return 0;
+				set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
+				goto err_out;
 			}
+			set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
 		}
 	}
+	unlock(&hdd.mutex);
+	return 0;
 
-	unlock( &( h_mgr.mut ) );
-	
-	return i;
+err_out:
+	unlock(&hdd.mutex);
+	return -1;
 }
 
 

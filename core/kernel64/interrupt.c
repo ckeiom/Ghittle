@@ -54,9 +54,9 @@ void timer_handler(int num)
 void hdd_handler(int num)
 {
 	if(num - PIC_IRQ_START_VECTOR == 14)
-		set_hdd_intr_flag(1, 1);
+		set_hdd_interrupt_state(HDD_PRIMARY, HDD_INTERRUPT);
 	else
-		set_hdd_intr_flag(0, 1);
+		set_hdd_interrupt_state(HDD_SECONDARY, HDD_INTERRUPT);
 
 	eoi_PIC(num - PIC_IRQ_START_VECTOR);
 }

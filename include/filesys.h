@@ -7,17 +7,21 @@
 #include <string.h>
 #include <task.h>
 
-#define FS_SIGN					0x7E38CF10
-#define FS_SECTORSPERCLUSTER	8
-#define FS_LASTCLUSTER			0xFFFFFFFF
-#define FS_FREECLUSTER			0x00
-#define FS_MAXDIRENTRYCOUNT		( ( FS_SECTORSPERCLUSTER * 512 ) / \
-		sizeof( struct dir_entry ) )
-#define FS_CLUSTERSIZE			( FS_SECTORSPERCLUSTER * 512 )
+#define FS_MAGIC				0x7E38CF10
+#define FS_SECTORS_PER_BLOCK	8
+#define FS_LAST_BLOCK			0xFFFFFFFF
+#define FS_FREE_BLOCK			0x00000000
+#define FS_BLOCK_SIZE		(FS_SECTORS_PER_BLOCK * HDD_SECTOR_SIZE)
 
-#define FS_HANDLE_MAXCOUNT		( TASK_MAX * 3 )
+/* DE stands for Directory entry */
+#define FS_DE_PER_BLOCK		(FS_BLOCK_SIZE / sizeof(struct dentry))
 
-#define FS_MAXFILENAMELEN		24
+/* MTE stands for Metadata Table Entry in metadata region */
+#define FS_MTE_SIZE	4
+#define FS_MTE_PER_SECTOR	(HDD_SECTOR_SIZE / FS_MTE_SIZE)
+#define FS_MAX_INODE		(TASK_MAX * 3)
+
+#define FS_MAX_FILENAME_LENGTH	24
 
 #define FS_TYPE_FREE			0
 #define FS_TYPE_FILE			1
@@ -26,14 +30,6 @@
 #define FS_SEEK_SET				0
 #define FS_SEEK_CUR				1
 #define FS_SEEK_END				2
-
-/* Functions related on control of HDD */
-typedef unsigned char ( *f_read_hdd_info ) ( unsigned char p, unsigned char m,
-		struct hdd_info *h_info );
-typedef int ( *f_read_hdd_sector ) ( unsigned char p, unsigned char m,
-		unsigned int lba, int sector_count, char *buf );
-typedef int ( *f_write_hdd_sector ) ( unsigned char p, unsigned char m,
-		unsigned int lba, int sector_count, char *buf );
 
 #define fopen					open_file
 #define fread					read_file
@@ -65,100 +61,44 @@ struct partition
 struct mbr
 {
 	unsigned char bcode[430];
-	unsigned int sign;
-	unsigned int reserved_sector_count;
-	unsigned int cl_sector_count;
-	unsigned int total_cluster_count;
+	unsigned int magic;
+	unsigned int reserved_sectors;
+	unsigned int metadata_sectors;
+	unsigned int total_blocks;
 	struct partition part[4];
 	unsigned char bl_sign[2];
 };
 
-struct dir_entry
-{
-	char fname[FS_MAXFILENAMELEN];
-	unsigned int fsize;
-	unsigned int start_cluster_index;
-};
 
-struct file
+struct filesys
 {
-	int dentry_offset;
-	unsigned int fsize;
-	unsigned int start_cluster_index;
-	unsigned int current_cluster_index;
-	unsigned int previous_cluster_index;
-	unsigned int current_offset;
-};
-
-struct dir
-{
-	struct dir_entry *dir_buf;
-	int current_offset;
-};
-
-struct inode
-{
-	unsigned char type;
-	union
-	{
-		struct file f_handle;
-		struct dir d_handle;
-	};
+	unsigned char mounted;
+	unsigned int reserved_sectors;		// in sector
+	unsigned int metadata_addr;			// in sector
+	unsigned int metadata_sectors;		// in sector
+	unsigned int data_addr;				// in sector
+	unsigned int total_blocks;			// in block
+	unsigned int last_allocated_index;	// in block
+	struct mutex mutex;
 };
 
 #pragma pack( pop )
 
-struct filesys_mgr
-{
-	unsigned char mounted;
-	unsigned int reserved_sector_count;
-	unsigned int cla_start_addr;
-	unsigned int cla_size;
-	unsigned int da_start_addr;
-	unsigned int total_cluster_count;
-	unsigned int cl_sector_offset;
-	struct mutex mut;
-	struct inode *inode_pool;
-};
+int init_filesys(void);
+int format(void);
+int mount(void);
+unsigned int find_free_block(void);
+int free_blocks_all(unsigned int block_index);
+int set_mte(unsigned int block_index, unsigned int data);
+int get_mte(unsigned int block_index, unsigned int *data);
+static int read_metadata_sector(unsigned int offset, unsigned char *buf);
+static int write_metadata_sector(unsigned int offset, unsigned char *buf);
 
-unsigned char init_fs( void );
-unsigned char format( void );
-unsigned char mount( void );
-unsigned char get_hdd_info( struct hdd_info *h_info );
 
-static unsigned char read_cl_table( unsigned int offset, unsigned char *buf );
-static unsigned char write_cl_table( unsigned int offset, unsigned char *buf );
-static unsigned char read_cluster( unsigned int offset, unsigned char *buf ); 
-static unsigned char write_cluster( unsigned int offset, unsigned char *buf ); 
-static unsigned int find_free_cluster( void );
-static unsigned char set_cl_data( unsigned int cluster_index, unsigned int data );
-static unsigned char get_cl_data( unsigned int cluster_index, unsigned int *data );
-static int find_free_dentry( void );
-static unsigned char set_dentry_data( int index, struct dir_entry *dentry );
-static unsigned char get_dentry_data( int index, struct dir_entry *dentry );
-static int find_dentry( const char *fname, struct dir_entry *dentry );
-void get_fs_info( struct filesys_mgr *mgr );
-
-struct inode *open_file( const char *fname, const char *mode );
-unsigned int read_file( void *buf, unsigned int size, unsigned int count,
-		struct inode *file );
-unsigned int write_file( const void *buf, unsigned int size, unsigned int count,
-		struct inode *file );
-int seek_file( struct inode *file, int offset, int origin );
-int close_file( struct inode *file );
-int remove_file( const char *fname );
-struct inode *open_dir( const char *dname );
-struct dir_entry *read_dir( struct inode *dir );
-void rewind_dir( struct inode *dir );
-int close_dir( struct inode *dir );
-unsigned char write_zero( struct inode *file, unsigned int count );
-unsigned char is_file_opened( const struct dir_entry *dentry );
-
+// do we really need below?
+/*
 static void *alloc_inode( void );
 static void free_inode( struct inode *file );
-static unsigned char create_file( const char *fname, struct dir_entry *dentry,
-		int *dentry_index );
-static unsigned char free_cluster_until_end( unsigned int cluster_index );
-static unsigned char update_dentry( struct file *f_handle);
-
+unsigned char write_zero( struct inode *file, unsigned int count );
+*/
 #endif

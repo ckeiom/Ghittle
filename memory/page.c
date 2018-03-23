@@ -3,6 +3,7 @@
 #include <page.h>
 #include <bitmap.h>
 #include <console.h>
+#include <kmem.h>
 
 static char map[(NUM_PHYS_PAGES-1)/8];
 static struct bitmap phy_page_bitmap;
@@ -26,25 +27,88 @@ void init_page_pool(void)
 
 void* alloc_pages(int num)
 {
-	unsigned long loc;
+	u64 loc;
 
-	for(loc = 0; loc < NUM_PHYS_PAGES; loc++)
-	{
-		if(bitmap_test_set(&phy_page_bitmap, loc) == 0)
-			break;
-	}
-	if(loc >= NUM_PHYS_PAGES)
+	loc = bitmap_find_free(&phy_page_bitmap, num);
+	if(loc < 0)
 	{
 		printk("No more pages to allocate\n");
 		return 0;
 	}
 
-	return (void *)(PAGE_PHYS_POOL_ADDR + DPAGE_SIZE * loc);
+	return (void *)(PAGE_PHYS_ADDR + DPAGE_SIZE * loc);
 }
 
-/* Link physical address accquired from alloc_pages() to virtual address, 
-   that is, modification in page table */
-
-int setup_page(int flags, unsigned long phys, unsigned long virt)
+struct pte* get_pte(int alloc, struct pd* pgd, u64 addr)
 {
+	struct pd *pud, *pmd, *pd;
+	struct pte *pte;
+	void* new_page;
+
+	pud = get_pud(pgd, addr);
+
+	if(!pd_present(pud))
+	{
+		if(alloc)
+		{
+			new_page = alloc_kpage(1);
+			set_pd(pud, (u64)new_page, PD_DEFAULT);
+		}
+		else
+			return 0;
+	}
+	pud = pd_addr(pud);
+	pmd = get_pmd(pud, addr);
+
+	if(!pd_present(pmd))
+	{
+		if(alloc)
+		{
+			new_page = alloc_kpage(1);
+			set_pd(pmd, (u64)new_page, PD_DEFAULT);
+		}
+		else
+			return 0;
+	}
+	pmd = pd_addr(pmd);
+
+	pd = get_pd(pmd, addr);
+
+	if(!pd_present(pd))
+	{
+		if(alloc)
+		{
+			new_page = alloc_kpage(1);
+			set_pd(pd, (u64)new_page, PD_DEFAULT);
+		}
+		else
+			return 0;
+	}
+	pd = pd_addr(pd);
+
+	pte = (struct pte*)(pd + PD_OFFSET(addr));
+
+
+	if(!pte_present(pte))
+	{
+		if(alloc)
+		{
+			new_page = alloc_pages(1);
+			set_pte(pte, (u64)new_page, PTE_DEFAULT);
+		}
+		else
+			return 0;
+	}
+
+	return pte;
+}
+
+void set_pd(struct pd* d, u64 addr, unsigned short flags)
+{
+	*((u64 *)d) = (addr & PD_MASK) | flags;
+}
+
+void set_pte(struct pte* e, u64 addr, unsigned short flags)
+{
+	*((u64 *)e) = (addr & PTE_MASK) | flags;
 }

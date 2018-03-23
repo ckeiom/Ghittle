@@ -13,6 +13,7 @@
 #include <filesys.h>
 #include <page.h>
 #include <kmem.h>
+#include <string.h>
 
 void main(void)
 {
@@ -48,7 +49,7 @@ void main(void)
 	mask_PIC(0);
 	enable_interrupt();
 
-	err = init_fs();
+	err = init_filesys();
 	if(err < 0)
 		goto ERR_OUT;
 
@@ -57,13 +58,6 @@ void main(void)
 	init_page_pool();
 	init_kmem();
 	printk("Boot finished\n");
-
-
-	char *km = alloc_kmem();
-	printk("KM: %x\n", km);
-	*km = 3;
-
-	printk("ll\n");
 	idle_task();
 ERR_OUT:
 	printk("PANIC\n");
