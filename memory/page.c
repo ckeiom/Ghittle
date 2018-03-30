@@ -57,7 +57,7 @@ struct pte* get_pte(int alloc, struct pd* pgd, u64 addr)
 		else
 			return 0;
 	}
-	pud = pd_addr(pud);
+	pud = (struct pd*)pd_addr(pud);
 	pmd = get_pmd(pud, addr);
 
 	if(!pd_present(pmd))
@@ -70,7 +70,7 @@ struct pte* get_pte(int alloc, struct pd* pgd, u64 addr)
 		else
 			return 0;
 	}
-	pmd = pd_addr(pmd);
+	pmd = (struct pd*)pd_addr(pmd);
 
 	pd = get_pd(pmd, addr);
 
@@ -84,7 +84,7 @@ struct pte* get_pte(int alloc, struct pd* pgd, u64 addr)
 		else
 			return 0;
 	}
-	pd = pd_addr(pd);
+	pd = (struct pd*)pd_addr(pd);
 
 	pte = (struct pte*)(pd + PD_OFFSET(addr));
 

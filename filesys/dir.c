@@ -68,7 +68,7 @@ int find_dentry(const char *name, struct dentry *dentry)
 
 	if(block_read(DIR_ROOT, buf) < 0)
 		return -1;
-	
+
 	root_dir = (struct dentry *)buf;
 	len = strlen(name);
 	

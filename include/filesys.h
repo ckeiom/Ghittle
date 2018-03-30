@@ -42,10 +42,6 @@
 #define	rewinddir				rewind_dir
 #define closedir				close_dir
 
-#define SEEK_SET				FS_SEEK_SET
-#define SEEK_CUR				FS_SEEK_CUR
-#define SEEK_END				FS_SEEK_END
-
 #pragma pack( push, 1 )
 
 struct partition
@@ -87,13 +83,14 @@ struct filesys
 int init_filesys(void);
 int format(void);
 int mount(void);
-unsigned int find_free_block(void);
+unsigned int filesys_alloc_block(unsigned int prev_index);
 int free_blocks_all(unsigned int block_index);
 int set_mte(unsigned int block_index, unsigned int data);
 int get_mte(unsigned int block_index, unsigned int *data);
 static int read_metadata_sector(unsigned int offset, unsigned char *buf);
 static int write_metadata_sector(unsigned int offset, unsigned char *buf);
 
+int filesys_test(void);
 
 // do we really need below?
 /*

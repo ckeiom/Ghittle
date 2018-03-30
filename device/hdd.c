@@ -235,6 +235,7 @@ int read_hdd_sector(unsigned char primary, unsigned char master,
 		
 		for(j = 0; j < HDD_SECTOR_SIZE / sizeof(unsigned short); j++)
 			((unsigned short* )buf)[j] = in_w(port + HDD_INDEX_DATA);
+		buf += HDD_SECTOR_SIZE;
 	}
 	unlock(&hdd.mutex);
 	return 0;
@@ -311,6 +312,7 @@ int write_hdd_sector(unsigned char primary, unsigned char master,
 			}
 			set_hdd_interrupt_state(primary, HDD_NOINTERRUPT);
 		}
+		buf += HDD_SECTOR_SIZE;
 	}
 	unlock(&hdd.mutex);
 	return 0;

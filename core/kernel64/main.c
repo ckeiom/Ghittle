@@ -57,6 +57,9 @@ void main(void)
 
 	init_page_pool();
 	init_kmem();
+
+	filesys_test();
+
 	printk("Boot finished\n");
 	idle_task();
 ERR_OUT:

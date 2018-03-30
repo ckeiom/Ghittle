@@ -40,7 +40,7 @@ int mount(void)
 	filesys.metadata_sectors = mbr.metadata_sectors;
 	filesys.data_addr = mbr.reserved_sectors + mbr.metadata_sectors + 1;
 	filesys.total_blocks = mbr.total_blocks;
-	
+	filesys.last_allocated_index = 0;	
 	block_base = filesys.data_addr;
 	unlock(&filesys.mutex);
 	return 0;
@@ -120,12 +120,11 @@ static int write_metadata_sector(unsigned int offset, unsigned char* buf)
 			                offset + filesys.metadata_addr, 1, buf);
 }
 
-unsigned int find_free_block(void)
+unsigned int filesys_alloc_block(unsigned int prev_index)
 {
-	char buf[HDD_SECTOR_SIZE];
+	unsigned int buf[HDD_SECTOR_SIZE];
 	unsigned int last_index;
 	unsigned int current_sector;
-	unsigned int last_sector;
 	unsigned int i, j;
 
 	lock(&filesys.mutex);
@@ -135,19 +134,25 @@ unsigned int find_free_block(void)
 
 	last_index = (filesys.last_allocated_index + 1) % filesys.total_blocks;
 	current_sector = (last_index / FS_MTE_PER_SECTOR);
-	last_sector = current_sector;
 
 	for(i = 0; i < filesys.metadata_sectors; i++)
 	{
-		if(read_metadata_sector(current_sector, buf) < 0)
+		if(read_metadata_sector(current_sector, (char*)buf) < 0)
 			goto err_out;
 
 		for(j = 0; j < FS_MTE_PER_SECTOR; j++)
 		{
 			if(buf[j] == FS_FREE_BLOCK)
 			{
+				filesys.last_allocated_index = current_sector * 
+											   FS_MTE_PER_SECTOR + j;
+				set_mte(filesys.last_allocated_index, FS_LAST_BLOCK);
+				if(prev_index != FS_LAST_BLOCK)
+					set_mte(prev_index, filesys.last_allocated_index);
+
+
 				unlock(&filesys.mutex);
-				return (current_sector * FS_MTE_PER_SECTOR + j);
+				return filesys.last_allocated_index;
 			}
 		}
 
@@ -219,12 +224,33 @@ int free_blocks_all(unsigned int block_index)
 	return 0;
 }
 
+#include <file.h>
+int filesys_test(void)
+{
+	struct file* file;
+	char buf[4096] = "abcd";
+	int res;
 
+	file = file_open("a.txt","r");
+	file_read(buf, 4096, file);
+	printk("%s\n", buf);
+	file_close(file);
 
-
-
-
-
+	file = file_open("b.txt","r");
+	file_read(buf, 4096, file);
+	printk("%s\n", buf);
+	file_close(file);
+	file = file_open("c.txt","r");
+	file_read(buf, 4096, file);
+	printk("%s\n", buf);
+	file_close(file);
+	file = file_open("large.txt","r");
+	file_read(buf, 4096, file);
+	printk("%s\n", buf);
+	file_close(file);
+	printk("done\n");
+	return 0;
+}
 
 
 

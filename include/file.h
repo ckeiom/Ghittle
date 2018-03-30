@@ -1,6 +1,7 @@
 #ifndef __FILE_H__
 #define __FILE_H__
 
+#include <dir.h>
 struct file
 {
 	unsigned char type;

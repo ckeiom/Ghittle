@@ -9,11 +9,9 @@ int file_create(const char *name, struct dentry *dentry, int *dentry_index)
 {
 	unsigned int block;
 	
-	block = find_free_block();
+	block = filesys_alloc_block(FS_LAST_BLOCK);
 	if(block == FS_LAST_BLOCK)
 		return -1; 
-	if(set_mte(block, FS_LAST_BLOCK) < 0)
-		return -1;
 
 	*dentry_index = find_free_dentry();
 	if(*dentry_index < 0)
@@ -160,18 +158,10 @@ unsigned int file_write(const void *buf, unsigned int size, struct file *file)
 	{
 		if(file->curr_block_index == FS_LAST_BLOCK)
 		{
-			new_block = find_free_block();
+			new_block = filesys_alloc_block(file->curr_block_index);
+			
 			if(new_block == FS_LAST_BLOCK)
 				break;
-
-			if(set_mte(new_block, FS_LAST_BLOCK) < 0)
-				break;
-
-			if(set_mte(file->prev_block_index, new_block) < 0)
-			{
-				set_mte(new_block, FS_FREE_BLOCK);
-				break;
-			}
 
 			file->curr_block_index = new_block;
 

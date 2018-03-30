@@ -28,7 +28,7 @@
 /* 0x200, 0x400, 0x800 are available */
 
 #define PD_DEFAULT	( PD_PRESENT | PD_WRITABLE )
-#define PD_MASK			(u64)0x7FFFFFFFFFFFF000
+#define PD_MASK			((u64)0x7FFFFFFFFFFFF000)
 
 /* These only cover Static kernel memory */
 #define PGD_START		0x100000 /* Only 1 PGD entry */
@@ -120,9 +120,10 @@ static inline struct pd* get_pd(struct pd* pmd, u64 addr)
 {
 	return pmd + PMD_OFFSET(addr);
 }
-static inline struct pd* pd_addr(struct pd* pd)
+static inline u64 pd_addr(struct pd* pd)
 {
-	return (struct pd*)(*((u64 *)pd) & PD_MASK);
+	u64* addr = (u64*)pd;
+	return (*addr & PD_MASK);
 }
 static inline int pd_present(struct pd* pd)
 {
