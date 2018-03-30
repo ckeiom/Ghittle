@@ -8,4 +8,5 @@ tags
 *.img
 *.mak
 *.swp
+*.jar
 dependency.dep
