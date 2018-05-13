@@ -22,11 +22,6 @@ void init_taskpool( void )
 	memset((void* )TASK_POOL_ADDR, 0, sizeof(struct task) * TASK_MAX);
 
 	init_mutex(&taskpool.lock);
-	/*
-	for( i = 0; i < TASK_MAX; i++)
-		taskpool.start_addr[i].id = i;
-	taskpool.max_count = TASK_MAX_COUNT;
-	*/
 }
 
 /*

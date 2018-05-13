@@ -31,8 +31,8 @@ add sp, 6				; Restore stack state which is changed by above 3 pushes
 mov si,0x1000			; Set ES 0x1000 < address to copy 32bit kernel image
 mov es, si
 
-mov bl, byte [0x1FC]	; Here to check if NM boot
-						; We use address ( 0x7C00+0x1FC ) to check
+mov bl, byte [0x1FC]	; Here to check if PM boot
+						; We use address (0x7C00+0x1FC) to check
 						; if current boot mode is NM boot
 						; bootloader image looks like below
 						;

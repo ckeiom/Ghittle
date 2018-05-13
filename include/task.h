@@ -69,7 +69,6 @@ struct taskpool
 {
 	void* addr;
 	int num_task;
-
 	struct mutex lock;
 };
 
