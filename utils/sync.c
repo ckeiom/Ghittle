@@ -3,9 +3,9 @@
 #include <asmutils.h>
 #include <sched.h>
 #include <task.h>
-void lock( struct mutex* m)
+void lock(struct mutex* m)
 {
-	if( test_set( &(m->flag), 0, 1 ) == 0 )
+	if(test_set(&(m->flag), 0, 1) == 0)
 	{
 		/* already locked, did i do that? */
 		if( m->tid == get_running_task()->id )
@@ -14,7 +14,7 @@ void lock( struct mutex* m)
 			return;
 		}
 		/* wait until unlocked */
-		while( test_set( &(m->flag), 0, 1 ) == 0 )
+		while(test_set(&(m->flag), 0, 1) == 0)
 		{
 			schedule();
 		}
@@ -23,10 +23,10 @@ void lock( struct mutex* m)
 	m->tid = get_running_task()->id;
 }
 
-void unlock( struct mutex* m )
+void unlock(struct mutex* m)
 {
 	/* already unlocked? or not my lock? */
-	if( (m->flag == 0 ) || (m->tid != get_running_task()->id ) )
+	if((m->flag == 0 ) || (m->tid != get_running_task()->id))
 		return;
 
 	if( m->count > 1 )

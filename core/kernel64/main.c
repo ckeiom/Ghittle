@@ -38,7 +38,7 @@ void main(void)
 	printk("Initializing taskpool & scheduler\n");
 
 	init_scheduler();
-	init_pit( MS_TO_COUNT(1), 1 );
+	init_pit(MS_TO_COUNT(1), 1);
 
 	err = init_keyboard();
 	if(err < 0)
@@ -58,8 +58,7 @@ void main(void)
 	init_page_pool();
 	init_kmem();
 
-	filesys_test();
-
+	task_test();
 	printk("Boot finished\n");
 	idle_task();
 ERR_OUT:

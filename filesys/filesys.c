@@ -3,6 +3,8 @@
 #include <hdd.h>
 #include <block.h>
 #include <console.h>
+#include <file.h>
+
 static struct filesys filesys;
 
 int init_filesys(void)
@@ -224,7 +226,6 @@ int free_blocks_all(unsigned int block_index)
 	return 0;
 }
 
-#include <file.h>
 int filesys_test(void)
 {
 	struct file* file;
@@ -236,10 +237,6 @@ int filesys_test(void)
 	printk("%s\n", buf);
 	file_close(file);
 
-	file = file_open("b.txt","r");
-	file_read(buf, 4096, file);
-	printk("%s\n", buf);
-	file_close(file);
 	file = file_open("c.txt","r");
 	file_read(buf, 4096, file);
 	printk("%s\n", buf);
@@ -249,6 +246,7 @@ int filesys_test(void)
 	printk("%s\n", buf);
 	file_close(file);
 	printk("done\n");
+
 	return 0;
 }
 

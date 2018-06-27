@@ -46,6 +46,8 @@ Disk.img: core/kernel16/kernel16.bin \
 	@echo ========== Make image ==========
 	@echo
 	./mkimage/mkimage $^
+	@echo ========== Make filesys image ==========
+	./mkimage/mkfilesys ./apps/exe/*
 	@echo
 	@echo ========== All Build Complete ==========
 	@echo

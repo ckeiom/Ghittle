@@ -69,7 +69,6 @@ struct taskpool
 {
 	void* addr;
 	int num_task;
-
 	struct mutex lock;
 };
 
@@ -90,5 +89,5 @@ void load_idtr(unsigned long addr);
 unsigned long read_tsc(void);
 unsigned long read_rflags(void);
 
-void test_task(void);
+void task_test(void);
 #endif

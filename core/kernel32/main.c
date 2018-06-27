@@ -71,10 +71,10 @@ int init_kern64_mem()
 	
 	pos = (unsigned int *)KMEM_START;
 
-	while( (unsigned int)pos < (KMEM_START + KMEM_SIZE) )
+	while((unsigned int)pos < (KMEM_START + KMEM_SIZE))
 	{
 		*pos = 0;
-		if ( *pos != 0 )
+		if (*pos != 0)
 			return -1;
 		pos++;
 	}
@@ -114,12 +114,13 @@ int copy_kern64()
 	total_sec_cnt = *((unsigned short*)0x7C05);
 	kern32_sec_cnt = *((unsigned short*)0x7C07);
 
-	src = (unsigned int* )( 0x10000 + (kern32_sec_cnt*512) );
-	dst = (unsigned int* )(KMEM_START + 0x100000);
+	src = (unsigned int*)(0x10000 + (kern32_sec_cnt*512));
+	dst = (unsigned int*)(KMEM_START + 0x100000);
 
-	for( i=0;i<512*(total_sec_cnt - kern32_sec_cnt)/4;i++ )
+	for(i = 0; i < 512 * (total_sec_cnt - kern32_sec_cnt) / 4; i++)
 		*dst++ = *src++;
-
+	
+	return 0;
 }
 
 
