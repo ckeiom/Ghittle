@@ -13,23 +13,26 @@
 
 void exception_handler(int num, unsigned long e_code)
 {
+	print_string_xy(50, 24, "Exception");
 	while(1);
 }
 
-void interrupt_handler( int num )
+void interrupt_handler(int num)
 {
-	eoi_PIC( num - PIC_IRQ_START_VECTOR );
+	print_string_xy(40, 24, "Interrupt");
+	eoi_PIC(num - PIC_IRQ_START_VECTOR);
 }
 
-void keyboard_handler( int num )
+void keyboard_handler(int num)
 {
 	char tmp;
-	if( is_obuffer_full() )
+	print_string_xy(30, 24, "Keyboard");
+	if(is_obuffer_full())
 	{
 		tmp = get_keycode();
 		put_scan_code(tmp);
 	}
-	eoi_PIC( num - PIC_IRQ_START_VECTOR );
+	eoi_PIC(num - PIC_IRQ_START_VECTOR);
 }
 
 /*
@@ -41,7 +44,7 @@ void keyboard_handler( int num )
  */
 void timer_handler(int num)
 {
-	eoi_PIC( num - PIC_IRQ_START_VECTOR );
+	eoi_PIC(num - PIC_IRQ_START_VECTOR);
 	tick++;
 
 	dec_cputime();

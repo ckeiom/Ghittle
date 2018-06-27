@@ -134,3 +134,27 @@ void setup_task( struct task* task, unsigned long flags, unsigned long entry,
 	task->flags = flags;
 }
 
+#include <filesys.h>
+#include <file.h>
+#include <page.h>
+void task_test(void)
+{
+	struct file* file;
+	int *addr;
+	void* phys = page_alloc_phys(1);
+//	page_setup((u64)phys, 0x2000000, (struct pd*)0x100000, PTE_DEFAULT);
+
+	addr = (int *)0x2000000;
+
+	printk("addr: %d\n", *addr);
+	
+	file = file_open("div0", "r");
+	int a,b,c;
+
+	b = 0;
+	a = 8;
+
+
+	
+}
+

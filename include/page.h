@@ -14,7 +14,8 @@
 /* 0x200, 0x400, 0x800 are available */
 #define PTE_PAT		0x1000 /* Page Attribute Table Index */
 
-#define PTE_DEFAULT	( PTE_PRESENT | PTE_WRITABLE )
+#define PTE_DEFAULT			(PTE_PRESENT | PTE_WRITABLE)
+#define PTE_DEFAULT_USER	(PTE_DEFAULT | PTE_USER)
 #define PTE_MASK		0x7FFFFFFFFFFFF000
 
 
@@ -27,7 +28,8 @@
 /* 0x40, 0x80, 0x100 are reserved */
 /* 0x200, 0x400, 0x800 are available */
 
-#define PD_DEFAULT	( PD_PRESENT | PD_WRITABLE )
+#define PD_DEFAULT			(PD_PRESENT | PD_WRITABLE)
+#define PD_DEFAULT_USER		(PD_DEFAULT | PD_USER)
 #define PD_MASK			((u64)0x7FFFFFFFFFFFF000)
 
 /* These only cover Static kernel memory */
@@ -99,10 +101,11 @@ void set_pd(struct pd* d,
 			u64 addr,
 			unsigned short flags);
 
-void* alloc_pages(int num);
+void* page_alloc_phys(int num);
 void init_page_pool(void);
+void page_setup(u64 phys_addr, u64 virt_addr, struct pd* pgd, short flags);
 
-struct pte* get_pte(int alloc, struct pd* pgd, u64 addr);
+struct pte* get_pte(struct pd* pgd, u64 addr);
 
 u64 get_pud_addr(u64 pgd, u64 addr);
 u64 get_pmd_addr(u64 pud, u64 addr);

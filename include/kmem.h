@@ -13,8 +13,9 @@
 #define kfree(addr)		__kfree((unsigned long)addr, sizeof(typeof(addr)))
 
 void init_kmem(void);
-void* alloc_kpage(int num);
+void* kpage_alloc(int num);
 void* kmalloc(int size);
+void kpage_free(unsigned long addr, int num);
 void __kfree(unsigned long addr, unsigned int size);
 
 #endif

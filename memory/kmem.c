@@ -18,7 +18,7 @@ void init_kmem(void)
 {
 	init_bitmap(&kmem_bitmap, KMEM_NUM_PAGES, kmem_map);
 	init_bitmap(&kmem_shard_bitmap, KMEM_NUM_SHARD, kmem_shard_map);
-	kmem_shard_pool = alloc_kpage(KMEM_SHARD_PAGES);
+	kmem_shard_pool = (char*)kpage_alloc(KMEM_SHARD_PAGES);
 }
 
 /* 
@@ -27,7 +27,7 @@ void init_kmem(void)
  * -> Now we have 16byte KMEM_SHARDs!
  * shards are 16byte aligned, allocated through kmalloc(int size)
  */
-void* alloc_kpage(int num)
+void* kpage_alloc(int num)
 {
 	int loc;
 	
@@ -41,7 +41,7 @@ void* alloc_kpage(int num)
 	return (void *)(KMEM_ADDR + KMEM_PAGE_SIZE * loc);
 }
 
-void free_kpage(unsigned long addr, int num)
+void kpage_free(unsigned long addr, int num)
 {
 	int loc;
 
